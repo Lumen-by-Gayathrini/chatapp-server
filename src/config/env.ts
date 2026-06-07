@@ -49,8 +49,13 @@ function loadEnv(): Env {
 
   const env = parsed.data;
 
+  // Treat a Vercel production deployment as production even if NODE_ENV isn't explicitly
+  // "production" in the function runtime.
+  const inProduction =
+    env.NODE_ENV === "production" || process.env.VERCEL_ENV === "production";
+
   // Production-only safety checks (TDD §10, §16 — secrets management).
-  if (env.NODE_ENV === "production") {
+  if (inProduction) {
     if (!env.MONGODB_URI) {
       throw new Error("MONGODB_URI is required in production");
     }
@@ -67,5 +72,6 @@ function loadEnv(): Env {
 
 export const env = loadEnv();
 
-export const isProduction = env.NODE_ENV === "production";
+export const isProduction =
+  env.NODE_ENV === "production" || process.env.VERCEL_ENV === "production";
 export const isTest = env.NODE_ENV === "test";
